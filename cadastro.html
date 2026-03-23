@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architech — Cadastro</title>
+  <link rel="stylesheet" href="assets/css/background.css" />
+  <link rel="stylesheet" href="assets/css/cadastro.css" />
+</head>
+<body>
+
+  <div class="architech-bg">
+
+    <div class="bg-icons">
+      <div class="bg-icon bg-icon--group">
+        <img src="assets/images/icon-group.png" alt="" />
+      </div>
+      <div class="bg-icon bg-icon--html">
+        <img src="assets/images/icon-html5.png" alt="" />
+      </div>
+      <div class="bg-icon bg-icon--css">
+        <img src="assets/images/icon-css3.png" alt="" />
+      </div>
+      <div class="bg-icon bg-icon--js-right">
+        <img src="assets/images/icon-js.png" alt="" />
+      </div>
+      <div class="bg-icon bg-icon--js-left">
+        <img src="assets/images/icon-js.png" alt="" />
+      </div>
+      <div class="bg-icon bg-icon--play">
+        <img src="assets/images/icon-polygon.png" alt="" />
+      </div>
+    </div>
+
+    <a href="index.html" class="btn-back">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar para principal
+    </a>
+
+    <div class="page-content">
+
+      <div class="logo-wrapper">
+        <div class="logo-circle">
+          <img src="assets/images/logo-a.png" alt="Architech" />
+        </div>
+        <span class="logo-name">Architech</span>
+      </div>
+
+      <h1 class="welcome-title">Bem-vindo(a)!</h1>
+
+      <div class="form-card">
+
+        <div class="form-col">
+          <label class="form-label">
+            Nome completo
+            <input class="form-input" type="text" id="nome" placeholder="Digite seu nome completo" />
+          </label>
+
+          <label class="form-label">
+            E-mail
+            <input class="form-input" type="email" id="email" placeholder="Digite seu e-mail..." />
+          </label>
+
+          <label class="form-label">
+            Senha
+            <div class="input-with-icon">
+              <input class="form-input" type="password" id="senha" placeholder="••••••••" />
+              <button class="input-icon-btn" type="button" onclick="toggleSenha('senha')">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg>
+              </button>
+            </div>
+          </label>
+
+          <label class="form-label">
+            Confirmar senha
+            <div class="input-with-icon">
+              <input class="form-input" type="password" id="confirmar" placeholder="••••••••" />
+              <button class="input-icon-btn" type="button" onclick="toggleSenha('confirmar')">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg>
+              </button>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-col-right">
+          <div>
+            <span class="dropdown-label">Instituição de ensino:</span>
+            <select class="form-select" id="instituicao">
+              <option value="">Selecione</option>
+              <option>UFSC</option>
+              <option>UDESC</option>
+              <option>IFSC</option>
+              <option>Outra</option>
+            </select>
+          </div>
+
+          <div>
+            <span class="knowledge-label">Nível de conhecimento em<br>CSS/JavaScript/HTML:</span>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="nivel" value="Iniciante" />
+                Iniciante
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="nivel" value="Intermediário" checked />
+                Intermediário
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="nivel" value="Avançado" />
+                Avançado
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="btn-submit" type="button" onclick="cadastrar()">Comece a aprender!</button>
+
+      <p class="msg-feedback" id="feedback"></p>
+
+      <p class="login-link">
+        Já tem uma conta? <a href="login.html">Entre!</a>
+      </p>
+
+    </div>
+
+  </div>
+
+  <script>
+    function toggleSenha(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function cadastrar() {
+      const feedback = document.getElementById('feedback');
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      const confirmar = document.getElementById('confirmar').value;
+      const nivel = document.querySelector('input[name="nivel"]:checked')?.value || '';
+
+      feedback.className = 'msg-feedback';
+      feedback.textContent = '';
+
+      if (!nome || !email || !senha || !confirmar) {
+        feedback.className = 'msg-feedback erro';
+        feedback.textContent = 'Preencha todos os campos obrigatórios.';
+        return;
+      }
+
+      if (senha !== confirmar) {
+        feedback.className = 'msg-feedback erro';
+        feedback.textContent = 'As senhas não coincidem.';
+        return;
+      }
+
+      feedback.textContent = 'Cadastrando...';
+
+      try {
+        const resp = await fetch('api/cadastro.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, email, senha, nivel_conhecimento: nivel })
+        });
+
+        const data = await resp.json();
+
+        if (data.sucesso) {
+          feedback.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
+          setTimeout(() => window.location.href = 'login.html', 1800);
+        } else {
+          feedback.className = 'msg-feedback erro';
+          feedback.textContent = data.mensagem || 'Erro ao cadastrar.';
+        }
+      } catch (e) {
+        feedback.className = 'msg-feedback erro';
+        feedback.textContent = 'Erro de conexão com o servidor.';
+      }
+    }
+  </script>
+
+</body>
+</html>
