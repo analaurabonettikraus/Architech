@@ -147,3 +147,32 @@ grid-template-columns:1fr;
 gap:20px;
 }
 }
+
+
+
+
+
+
+
+.form-login{
+    max-width:350px;
+    margin:auto;
+    text-align:left;
+    }
+    
+    .extra{
+    text-align:right;
+    margin-top:-10px;
+    margin-bottom:15px;
+    font-size:13px;
+    }
+    
+    .extra a{
+    opacity:0.8;
+    text-decoration:none;
+    }
+    
+    .extra a:hover{
+    text-decoration:underline;
+    }
+    
