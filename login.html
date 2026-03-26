@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Architech — Cadastro</title>
+  <title>Architech — Login</title>
   <link rel="stylesheet" href="assets/css/background.css" />
-  <link rel="stylesheet" href="assets/css/cadastro.css" />
+  <link rel="stylesheet" href="assets/css/login.css" />
 </head>
 <body>
 
@@ -32,7 +32,7 @@
       </div>
     </div>
 
-    <a href="cadastro.html" class="btn-back">
+    <a href="index.html" class="btn-back">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       Voltar para principal
     </a>
@@ -48,38 +48,31 @@
 
       <h1 class="welcome-title">Bem-vindo(a)!</h1>
 
-      <form id="l oginForm" class="form">
+      <div class="form-card">
 
-        <!-- coluna única ocupando tudo -->
-        <div class="col" style="grid-column: span 2; max-width:400px; margin:auto;">
+        <label class="form-label">
+          E-mail
+          <input class="form-input" type="email" id="email" placeholder="Digite seu e-mail..." />
+        </label>
 
-            <label>E-mail</label>
-            <input type="email" id="email" placeholder="Digite seu e-mail" required>
+        <label class="form-label">
+          Senha
+          <div class="input-with-icon">
+            <input class="form-input" type="password" id="senha" placeholder="••••••••" />
+            <button class="input-icon-btn" type="button" onclick="toggleSenha('senha')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg>
+            </button>
+          </div>
+        </label>
 
-            <label>Senha</label>
-            <div class="input-icon">
-                <input type="password" id="senha" placeholder="********" required>
-                <span onclick="toggleSenha()">👁</span>
-            </div>
+        <button class="btn-submit" type="button" onclick="logar()">Entrar</button>
 
-            <div style="text-align:right; font-size:13px; margin-top:-10px;">
-                <a href="#" style="text-decoration:none;">Esqueci minha senha</a>
-            </div>
+        <p class="msg-feedback" id="feedback"></p>
 
-        </div>
+      </div>
 
-    
-
-    </form>
-
-
-
-      <button class="btn-submit" type="button" onclick="cadastrar()">Volte a aprender!</button>
-
-      <p class="msg-feedback" id="feedback"></p>
-
-      <p class="login-link">
-        Ainda não possui uma conta? <a href="cadastro.html">Se cadastre!</a>
+      <p class="cadastro-link">
+        Não tem uma conta? <a href="cadastro.html">Cadastre-se!</a>
       </p>
 
     </div>
@@ -87,33 +80,49 @@
   </div>
 
   <script>
-    function toggleSenha() {
-        const input = document.getElementById('senha');
-        input.type = input.type === 'password' ? 'text' : 'password';
+    function toggleSenha(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
     }
-    
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-    
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-    
-        const res = await fetch('login.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, senha })
+
+    async function logar() {
+      const feedback = document.getElementById('feedback');
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      feedback.className = 'msg-feedback';
+      feedback.textContent = '';
+
+      if (!email || !senha) {
+        feedback.className = 'msg-feedback erro';
+        feedback.textContent = 'Preencha e-mail e senha.';
+        return;
+      }
+
+      feedback.textContent = 'Entrando...';
+
+      try {
+        const resp = await fetch('api/login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
         });
-    
-        const data = await res.json();
-    
+
+        const data = await resp.json();
+
         if (data.sucesso) {
-            alert('Login realizado!');
-            window.location.href = 'dashboard.html';
+          feedback.textContent = 'Login realizado! Redirecionando...';
+          setTimeout(() => window.location.href = 'dashboard.html', 1500);
         } else {
-            alert(data.mensagem);
+          feedback.className = 'msg-feedback erro';
+          feedback.textContent = data.mensagem || 'E-mail ou senha incorretos.';
         }
-    });
-    </script>
+      } catch (e) {
+        feedback.className = 'msg-feedback erro';
+        feedback.textContent = 'Erro de conexão com o servidor.';
+      }
+    }
+  </script>
 
 </body>
 </html>
