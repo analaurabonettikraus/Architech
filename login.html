@@ -9,120 +9,124 @@
 </head>
 <body>
 
-  <div class="architech-bg">
+<div class="architech-bg">
 
-    <div class="bg-icons">
-      <div class="bg-icon bg-icon--group">
-        <img src="assets/images/icon-group.png" alt="" />
+  <div class="bg-icons">
+    <div class="bg-icon bg-icon--group">
+      <img src="assets/images/icon-group.png" alt="" />
+    </div>
+    <div class="bg-icon bg-icon--html">
+      <img src="assets/images/icon-html5.png" alt="" />
+    </div>
+    <div class="bg-icon bg-icon--css">
+      <img src="assets/images/icon-css3.png" alt="" />
+    </div>
+    <div class="bg-icon bg-icon--js-right">
+      <img src="assets/images/icon-js.png" alt="" />
+    </div>
+    <div class="bg-icon bg-icon--js-left">
+      <img src="assets/images/icon-js.png" alt="" />
+    </div>
+    <div class="bg-icon bg-icon--play">
+      <img src="assets/images/icon-polygon.png" alt="" />
+    </div>
+  </div>
+
+  <a href="index.html" class="btn-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Voltar para principal
+  </a>
+
+  <div class="page-content">
+
+    <div class="logo-wrapper">
+      <div class="logo-circle">
+        <img src="assets/images/logo-a.png" alt="Architech" />
       </div>
-      <div class="bg-icon bg-icon--html">
-        <img src="assets/images/icon-html5.png" alt="" />
-      </div>
-      <div class="bg-icon bg-icon--css">
-        <img src="assets/images/icon-css3.png" alt="" />
-      </div>
-      <div class="bg-icon bg-icon--js-right">
-        <img src="assets/images/icon-js.png" alt="" />
-      </div>
-      <div class="bg-icon bg-icon--js-left">
-        <img src="assets/images/icon-js.png" alt="" />
-      </div>
-      <div class="bg-icon bg-icon--play">
-        <img src="assets/images/icon-polygon.png" alt="" />
-      </div>
+      <span class="logo-name">Architech</span>
     </div>
 
-    <a href="index.html" class="btn-back">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      Voltar para principal
-    </a>
+    <h1 class="welcome-title">Bem-vindo(a)!</h1>
 
-    <div class="page-content">
+    <div class="form-card">
 
-      <div class="logo-wrapper">
-        <div class="logo-circle">
-          <img src="assets/images/logo-a.png" alt="Architech" />
+      <label class="form-label">
+        E-mail
+        <input class="form-input" type="email" id="email" placeholder="Digite seu e-mail..." />
+      </label>
+
+      <label class="form-label">
+        Senha
+        <div class="input-with-icon">
+          <input class="form-input" type="password" id="senha" placeholder="••••••••" />
+          <button class="input-icon-btn" type="button" onclick="toggleSenha('senha')">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>
+            </svg>
+          </button>
         </div>
-        <span class="logo-name">Architech</span>
-      </div>
+      </label>
 
-      <h1 class="welcome-title">Bem-vindo(a)!</h1>
+      <button class="btn-submit" type="button" onclick="logar()">Entrar</button>
 
-      <div class="form-card">
-
-        <label class="form-label">
-          E-mail
-          <input class="form-input" type="email" id="email" placeholder="Digite seu e-mail..." />
-        </label>
-
-        <label class="form-label">
-          Senha
-          <div class="input-with-icon">
-            <input class="form-input" type="password" id="senha" placeholder="••••••••" />
-            <button class="input-icon-btn" type="button" onclick="toggleSenha('senha')">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg>
-            </button>
-          </div>
-        </label>
-
-        <button class="btn-submit" type="button" onclick="logar()">Entrar</button>
-
-        <p class="msg-feedback" id="feedback"></p>
-
-      </div>
-
-      <p class="cadastro-link">
-        Não tem uma conta? <a href="cadastro.html">Cadastre-se!</a>
-      </p>
+      <p class="msg-feedback" id="feedback"></p>
 
     </div>
+
+    <p class="cadastro-link">
+      Não tem uma conta? <a href="cadastro.html">Cadastre-se!</a>
+    </p>
 
   </div>
 
-  <script>
-    function toggleSenha(id) {
-      const input = document.getElementById(id);
-      input.type = input.type === 'password' ? 'text' : 'password';
+</div>
+
+<script>
+  function toggleSenha(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  async function logar() {
+    const feedback = document.getElementById('feedback');
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value;
+
+    feedback.className = 'msg-feedback';
+    feedback.textContent = '';
+
+    if (!email || !senha) {
+      feedback.className = 'msg-feedback erro';
+      feedback.textContent = 'Preencha e-mail e senha.';
+      return;
     }
 
-    async function logar() {
-      const feedback = document.getElementById('feedback');
-      const email = document.getElementById('email').value.trim();
-      const senha = document.getElementById('senha').value;
+    feedback.textContent = 'Entrando...';
 
-      feedback.className = 'msg-feedback';
-      feedback.textContent = '';
+    try {
+      const resp = await fetch('api/login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+      });
 
-      if (!email || !senha) {
+      const data = await resp.json();
+
+      if (data.sucesso) {
+        feedback.className = 'msg-feedback ok';
+        feedback.textContent = 'Login realizado! Redirecionando...';
+        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+      } else {
         feedback.className = 'msg-feedback erro';
-        feedback.textContent = 'Preencha e-mail e senha.';
-        return;
+        feedback.textContent = data.mensagem || 'E-mail ou senha incorretos.';
       }
-
-      feedback.textContent = 'Entrando...';
-
-      try {
-        const resp = await fetch('api/login.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, senha })
-        });
-
-        const data = await resp.json();
-
-        if (data.sucesso) {
-          feedback.textContent = 'Login realizado! Redirecionando...';
-          setTimeout(() => window.location.href = 'dashboard.html', 1500);
-        } else {
-          feedback.className = 'msg-feedback erro';
-          feedback.textContent = data.mensagem || 'E-mail ou senha incorretos.';
-        }
-      } catch (e) {
-        feedback.className = 'msg-feedback erro';
-        feedback.textContent = 'Erro de conexão com o servidor.';
-      }
+    } catch (e) {
+      feedback.className = 'msg-feedback erro';
+      feedback.textContent = 'Erro de conexão com o servidor.';
     }
-  </script>
+  }
+</script>
 
 </body>
 </html>
