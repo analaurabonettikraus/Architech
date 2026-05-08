@@ -221,6 +221,21 @@
   color: #86efac;
 }
 
+.forgot-link {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+  text-align: right;
+  margin-top: -8px;
+}
+
+.forgot-link:hover {
+  color: var(--text-light);
+}
+
 .cadastro-link {
   font-family: var(--font-body);
   font-size: 14px;
