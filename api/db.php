@@ -6,9 +6,9 @@ define('DB_NAME', 'architech');
 
 function conectar() {
     return new PDO(
-        "mysql:host=localhost;dbname=architech;charset=utf8",
-        "root",
-        "",
+        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        DB_USER,
+        DB_PASS,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]

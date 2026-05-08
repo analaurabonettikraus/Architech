@@ -72,6 +72,8 @@
 
       <p class="msg-feedback" id="feedback"></p>
 
+      <a href="recuperar-senha.html" class="forgot-link">Esqueceu a senha?</a>
+
     </div>
 
     <p class="cadastro-link">
@@ -116,7 +118,7 @@
       if (data.sucesso) {
         feedback.className = 'msg-feedback ok';
         feedback.textContent = 'Login realizado! Redirecionando...';
-        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+        setTimeout(() => window.location.href = 'index.html', 1500);
       } else {
         feedback.className = 'msg-feedback erro';
         feedback.textContent = data.mensagem || 'E-mail ou senha incorretos.';
