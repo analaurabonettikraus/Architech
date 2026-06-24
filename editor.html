@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Editor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:#1e1e1e;font-family:monospace}
+    #root{display:flex;flex-direction:column;height:100vh;background:#1e1e1e;overflow:hidden}
+    .topbar{display:flex;align-items:center;justify-content:space-between;background:#2d2d2d;padding:0 12px;height:36px;border-bottom:1px solid #111;flex-shrink:0}
+    .tabs{display:flex;align-items:stretch;height:100%}
+    .tab{display:flex;align-items:center;gap:6px;padding:0 14px;font-size:12px;color:#999;cursor:default;border-right:1px solid #111;position:relative}
+    .tab.active{color:#ccc;background:#1e1e1e;border-top:1px solid #007acc}
+    .tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:#1e1e1e}
+    .run-btn{display:flex;align-items:center;gap:6px;background:#0e7a0e;color:#fff;border:none;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:sans-serif;transition:background 0.15s}
+    .run-btn:hover{background:#14a314}
+    .run-btn:active{background:#0b6b0b}
+    .panels{display:flex;flex:1;overflow:hidden}
+    .editor-side{flex:1;display:flex;flex-direction:column;border-right:1px solid #111;min-width:0;position:relative}
+    .editor-header{background:#252526;padding:4px 12px;font-size:11px;color:#858585;border-bottom:1px solid #111;flex-shrink:0;display:flex;align-items:center;gap:6px}
+    .editor-body{display:flex;flex:1;overflow:hidden;position:relative}
+    .line-numbers{background:#1e1e1e;padding:10px 0;width:40px;text-align:right;font-size:13px;line-height:1.6;color:#555;user-select:none;overflow:hidden;flex-shrink:0;padding-right:8px}
+    .line-numbers span{display:block}
+    #code-input{flex:1;background:#1e1e1e;color:#d4d4d4;border:none;outline:none;padding:10px 10px 10px 8px;font-size:13px;line-height:1.6;font-family:'Cascadia Code','Fira Code','Consolas',monospace;resize:none;overflow-y:auto;tab-size:2;white-space:pre;caret-color:#fff}
+    #code-input::selection{background:#264f78}
+    #autocomplete-box{position:absolute;background:#252526;border:1px solid #454545;border-radius:4px;font-size:12px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;z-index:100;min-width:180px;max-width:280px;max-height:180px;overflow-y:auto;display:none;box-shadow:2px 4px 12px rgba(0,0,0,0.5)}
+    .ac-item{display:flex;align-items:center;gap:8px;padding:4px 10px;color:#d4d4d4;cursor:pointer;white-space:nowrap}
+    .ac-item:hover,.ac-item.selected{background:#094771}
+    .ac-kind{font-size:10px;padding:1px 4px;border-radius:3px;flex-shrink:0;font-weight:500}
+    .ac-kind.kw{background:#1f3a5f;color:#569cd6}
+    .ac-kind.fn{background:#1a3a1a;color:#dcdcaa}
+    .ac-kind.prop{background:#2d1b00;color:#9cdcfe}
+    .ac-kind.snip{background:#2d1a2d;color:#c586c0}
+    .ac-match{color:#fff;font-weight:500}
+    .ac-hint{color:#666;font-size:10px;margin-left:auto;padding-left:8px}
+    .output-side{flex:1;display:flex;flex-direction:column;min-width:0}
+    .output-header{background:#252526;padding:4px 12px;font-size:11px;color:#858585;border-bottom:1px solid #111;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px}
+    .output-header-left{display:flex;align-items:center;gap:6px}
+    .clear-btn{background:none;border:none;color:#666;cursor:pointer;font-size:11px;font-family:sans-serif;padding:0}
+    .clear-btn:hover{color:#aaa}
+    #output-frame{flex:1;border:none;background:#fff;display:none}
+    .console-area{background:#1e1e1e;flex:1;overflow-y:auto;padding:8px 12px;font-size:12px;font-family:'Cascadia Code','Fira Code','Consolas',monospace}
+    .console-line{line-height:1.7;display:flex;gap:8px}
+    .console-line.log{color:#d4d4d4}
+    .console-line.error{color:#f48771}
+    .console-line.warn{color:#cca700}
+    .console-line.info{color:#75beff}
+    .console-prefix{color:#555;flex-shrink:0}
+    .statusbar{display:flex;align-items:center;gap:16px;background:#007acc;padding:0 12px;height:22px;font-size:11px;color:#fff;flex-shrink:0}
+    .statusbar-right{margin-left:auto;display:flex;gap:16px}
+    .mode-toggle{display:flex;background:#1a1a1a;border-radius:4px;overflow:hidden;flex-shrink:0}
+    .mode-btn{background:none;border:none;color:#666;font-size:11px;padding:3px 8px;cursor:pointer;font-family:sans-serif;transition:all 0.15s}
+    .mode-btn.active{background:#007acc;color:#fff}
+  </style>
+</head>
+<body>
+<div id="root">
+  <div class="topbar">
+    <div class="tabs">
+      <div class="tab active" id="tab-label"><i class="ti ti-brand-javascript"></i> script.js</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-js" onclick="setMode('js')">JS</button>
+        <button class="mode-btn" id="btn-html" onclick="setMode('html')">HTML</button>
+      </div>
+      <button class="run-btn" onclick="runCode()"><i class="ti ti-player-play"></i> Executar</button>
+    </div>
+  </div>
+  <div class="panels">
+    <div class="editor-side">
+      <div class="editor-header"><i class="ti ti-code" style="font-size:13px"></i> Editor</div>
+      <div class="editor-body">
+        <div class="line-numbers" id="line-numbers"></div>
+        <textarea id="code-input" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+        <div id="autocomplete-box"></div>
+      </div>
+    </div>
+    <div class="output-side">
+      <div class="output-header">
+        <div class="output-header-left"><i class="ti ti-terminal" style="font-size:13px"></i> Saída</div>
+        <button class="clear-btn" onclick="clearOutput()">limpar</button>
+      </div>
+      <div class="console-area" id="console-area"></div>
+      <iframe id="output-frame"></iframe>
+    </div>
+  </div>
+  <div class="statusbar">
+    <span id="status-lang">JavaScript</span>
+    <div class="statusbar-right"><span id="cursor-pos">Ln 1, Col 1</span><span>UTF-8</span></div>
+  </div>
+</div>
+
+<script>
+const jsDefault=`// Olá! Escreva seu código JavaScript aqui
+// O autocomplete aparece enquanto você digita
+
+const mensagem = "Olá, Mundo!";
+console.log(mensagem);
+
+const numeros = [1, 2, 3, 4, 5];
+const dobrados = numeros.map(n => n * 2);
+console.log("Dobrados:", dobrados);
+
+const pessoa = {
+  nome: "Maria",
+  idade: 28,
+  saudacao() {
+    return \`Olá, meu nome é \${this.nome}\`;
+  }
+};
+console.log(pessoa.saudacao());`;
+
+const htmlDefault=`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f0f4f8;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 { color: #007acc; }
+    button {
+      margin-top: 1rem;
+      padding: 8px 20px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Olá, Mundo!</h1>
+    <p>Edite este HTML e clique em Executar</p>
+    <button onclick="this.textContent='Clicado!'">Clique aqui</button>
+  </div>
+</body>
+</html>`;
+
+const JS_COMPLETIONS=[
+  {label:'console.log',kind:'fn',detail:'(value)'},
+  {label:'console.error',kind:'fn',detail:'(value)'},
+  {label:'console.warn',kind:'fn',detail:'(value)'},
+  {label:'console.table',kind:'fn',detail:'(data)'},
+  {label:'const',kind:'kw',detail:'constante'},
+  {label:'let',kind:'kw',detail:'variável'},
+  {label:'var',kind:'kw',detail:'variável'},
+  {label:'function',kind:'kw',detail:'declaração'},
+  {label:'return',kind:'kw',detail:'retorno'},
+  {label:'if',kind:'snip',detail:'if (cond) {…}',insert:'if () {\n  \n}'},
+  {label:'else',kind:'kw',detail:'else {…}'},
+  {label:'for',kind:'snip',detail:'for loop',insert:'for (let i = 0; i < ; i++) {\n  \n}'},
+  {label:'while',kind:'snip',detail:'while loop',insert:'while () {\n  \n}'},
+  {label:'forEach',kind:'fn',detail:'.forEach(fn)'},
+  {label:'map',kind:'fn',detail:'.map(fn)'},
+  {label:'filter',kind:'fn',detail:'.filter(fn)'},
+  {label:'reduce',kind:'fn',detail:'.reduce(fn, init)'},
+  {label:'find',kind:'fn',detail:'.find(fn)'},
+  {label:'includes',kind:'fn',detail:'.includes(value)'},
+  {label:'indexOf',kind:'fn',detail:'.indexOf(value)'},
+  {label:'push',kind:'fn',detail:'.push(value)'},
+  {label:'pop',kind:'fn',detail:'.pop()'},
+  {label:'shift',kind:'fn',detail:'.shift()'},
+  {label:'unshift',kind:'fn',detail:'.unshift(value)'},
+  {label:'splice',kind:'fn',detail:'.splice(start, count)'},
+  {label:'slice',kind:'fn',detail:'.slice(start, end)'},
+  {label:'join',kind:'fn',detail:'.join(sep)'},
+  {label:'split',kind:'fn',detail:'.split(sep)'},
+  {label:'trim',kind:'fn',detail:'.trim()'},
+  {label:'replace',kind:'fn',detail:'.replace(a, b)'},
+  {label:'toLowerCase',kind:'fn',detail:'.toLowerCase()'},
+  {label:'toUpperCase',kind:'fn',detail:'.toUpperCase()'},
+  {label:'toString',kind:'fn',detail:'.toString()'},
+  {label:'parseInt',kind:'fn',detail:'(str, radix)'},
+  {label:'parseFloat',kind:'fn',detail:'(str)'},
+  {label:'isNaN',kind:'fn',detail:'(value)'},
+  {label:'typeof',kind:'kw',detail:'operador'},
+  {label:'instanceof',kind:'kw',detail:'operador'},
+  {label:'new',kind:'kw',detail:'instância'},
+  {label:'class',kind:'kw',detail:'declaração'},
+  {label:'extends',kind:'kw',detail:'herança'},
+  {label:'import',kind:'kw',detail:'importar'},
+  {label:'export',kind:'kw',detail:'exportar'},
+  {label:'default',kind:'kw',detail:'padrão'},
+  {label:'async',kind:'kw',detail:'assíncrono'},
+  {label:'await',kind:'kw',detail:'aguardar'},
+  {label:'try',kind:'snip',detail:'try/catch',insert:'try {\n  \n} catch (e) {\n  console.error(e);\n}'},
+  {label:'catch',kind:'kw',detail:'capturar erro'},
+  {label:'finally',kind:'kw',detail:'finalizar'},
+  {label:'throw',kind:'kw',detail:'lançar erro'},
+  {label:'Math.round',kind:'fn',detail:'(n)'},
+  {label:'Math.floor',kind:'fn',detail:'(n)'},
+  {label:'Math.ceil',kind:'fn',detail:'(n)'},
+  {label:'Math.abs',kind:'fn',detail:'(n)'},
+  {label:'Math.max',kind:'fn',detail:'(...values)'},
+  {label:'Math.min',kind:'fn',detail:'(...values)'},
+  {label:'Math.random',kind:'fn',detail:'()'},
+  {label:'Math.sqrt',kind:'fn',detail:'(n)'},
+  {label:'Math.pow',kind:'fn',detail:'(base, exp)'},
+  {label:'JSON.stringify',kind:'fn',detail:'(obj, null, 2)'},
+  {label:'JSON.parse',kind:'fn',detail:'(str)'},
+  {label:'Object.keys',kind:'fn',detail:'(obj)'},
+  {label:'Object.values',kind:'fn',detail:'(obj)'},
+  {label:'Object.entries',kind:'fn',detail:'(obj)'},
+  {label:'Object.assign',kind:'fn',detail:'(target, src)'},
+  {label:'Array.from',kind:'fn',detail:'(iterable)'},
+  {label:'Array.isArray',kind:'fn',detail:'(value)'},
+  {label:'Promise',kind:'fn',detail:'new Promise(fn)'},
+  {label:'setTimeout',kind:'fn',detail:'(fn, ms)'},
+  {label:'setInterval',kind:'fn',detail:'(fn, ms)'},
+  {label:'clearTimeout',kind:'fn',detail:'(id)'},
+  {label:'clearInterval',kind:'fn',detail:'(id)'},
+  {label:'document.getElementById',kind:'fn',detail:'(id)'},
+  {label:'document.querySelector',kind:'fn',detail:'(selector)'},
+  {label:'document.querySelectorAll',kind:'fn',detail:'(selector)'},
+  {label:'addEventListener',kind:'fn',detail:'(event, fn)'},
+  {label:'innerHTML',kind:'prop',detail:'propriedade'},
+  {label:'textContent',kind:'prop',detail:'propriedade'},
+  {label:'style',kind:'prop',detail:'propriedade'},
+  {label:'classList',kind:'prop',detail:'propriedade'},
+  {label:'length',kind:'prop',detail:'propriedade'},
+  {label:'undefined',kind:'kw',detail:'valor'},
+  {label:'null',kind:'kw',detail:'valor'},
+  {label:'true',kind:'kw',detail:'booleano'},
+  {label:'false',kind:'kw',detail:'booleano'},
+  {label:'NaN',kind:'kw',detail:'not a number'},
+  {label:'Infinity',kind:'kw',detail:'infinito'},
+];
+
+const HTML_COMPLETIONS=[
+  {label:'div',kind:'snip',insert:'<div></div>'},
+  {label:'span',kind:'snip',insert:'<span></span>'},
+  {label:'p',kind:'snip',insert:'<p></p>'},
+  {label:'h1',kind:'snip',insert:'<h1></h1>'},
+  {label:'h2',kind:'snip',insert:'<h2></h2>'},
+  {label:'h3',kind:'snip',insert:'<h3></h3>'},
+  {label:'button',kind:'snip',insert:'<button onclick=""></button>'},
+  {label:'input',kind:'snip',insert:'<input type="text" placeholder="">'},
+  {label:'a',kind:'snip',insert:'<a href=""></a>'},
+  {label:'img',kind:'snip',insert:'<img src="" alt="">'},
+  {label:'ul',kind:'snip',insert:'<ul>\n  <li></li>\n</ul>'},
+  {label:'ol',kind:'snip',insert:'<ol>\n  <li></li>\n</ol>'},
+  {label:'li',kind:'snip',insert:'<li></li>'},
+  {label:'table',kind:'snip',insert:'<table>\n  <tr>\n    <th></th>\n  </tr>\n  <tr>\n    <td></td>\n  </tr>\n</table>'},
+  {label:'form',kind:'snip',insert:'<form>\n  \n</form>'},
+  {label:'label',kind:'snip',insert:'<label for=""></label>'},
+  {label:'select',kind:'snip',insert:'<select>\n  <option value=""></option>\n</select>'},
+  {label:'textarea',kind:'snip',insert:'<textarea rows="4"></textarea>'},
+  {label:'style',kind:'snip',insert:'<style>\n  \n</style>'},
+  {label:'script',kind:'snip',insert:'<script>\n  \n<\/script>'},
+  {label:'link',kind:'snip',insert:'<link rel="stylesheet" href="">'},
+  {label:'meta',kind:'snip',insert:'<meta name="" content="">'},
+  {label:'class',kind:'prop',detail:'atributo'},
+  {label:'id',kind:'prop',detail:'atributo'},
+  {label:'href',kind:'prop',detail:'atributo'},
+  {label:'src',kind:'prop',detail:'atributo'},
+  {label:'onclick',kind:'prop',detail:'evento'},
+  {label:'onchange',kind:'prop',detail:'evento'},
+  {label:'onsubmit',kind:'prop',detail:'evento'},
+  {label:'oninput',kind:'prop',detail:'evento'},
+  {label:'display:flex',kind:'snip',detail:'css'},
+  {label:'display:grid',kind:'snip',detail:'css'},
+  {label:'background-color',kind:'prop',detail:'css'},
+  {label:'border-radius',kind:'prop',detail:'css'},
+  {label:'font-size',kind:'prop',detail:'css'},
+  {label:'margin',kind:'prop',detail:'css'},
+  {label:'padding',kind:'prop',detail:'css'},
+  {label:'color',kind:'prop',detail:'css'},
+  {label:'width',kind:'prop',detail:'css'},
+  {label:'height',kind:'prop',detail:'css'},
+];
+
+let currentMode='js';
+let acItems=[];
+let acSelected=0;
+let acVisible=false;
+let acWordStart=0;
+
+const textarea=document.getElementById('code-input');
+const lineNumbers=document.getElementById('line-numbers');
+const consoleArea=document.getElementById('console-area');
+const outputFrame=document.getElementById('output-frame');
+const acBox=document.getElementById('autocomplete-box');
+
+function getCompletions(){return currentMode==='js'?JS_COMPLETIONS:HTML_COMPLETIONS;}
+
+function getCurrentWord(){
+  const pos=textarea.selectionStart;
+  const text=textarea.value.substring(0,pos);
+  const match=text.match(/[\w.]+$/);
+  if(!match) return {word:'',start:pos};
+  return {word:match[0],start:pos-match[0].length};
+}
+
+function showAutocomplete(){
+  const {word,start}=getCurrentWord();
+  acWordStart=start;
+  if(!word||word.length<1){hideAutocomplete();return;}
+  const lw=word.toLowerCase();
+  const matches=getCompletions().filter(c=>c.label.toLowerCase().startsWith(lw)&&c.label.toLowerCase()!==lw).slice(0,10);
+  if(!matches.length){hideAutocomplete();return;}
+  acItems=matches;
+  acSelected=0;
+  renderAC(word);
+  positionAC();
+  acVisible=true;
+}
+
+function renderAC(word){
+  acBox.innerHTML='';
+  acItems.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='ac-item'+(i===acSelected?' selected':'');
+    const kind=document.createElement('span');
+    kind.className='ac-kind '+item.kind;
+    kind.textContent=item.kind;
+    const lbl=document.createElement('span');
+    const lw=word.toLowerCase();
+    const idx=item.label.toLowerCase().indexOf(lw);
+    if(idx>=0){
+      lbl.innerHTML=item.label.substring(0,idx)+'<span class="ac-match">'+item.label.substring(idx,idx+word.length)+'</span>'+item.label.substring(idx+word.length);
+    }else{lbl.textContent=item.label;}
+    const hint=document.createElement('span');
+    hint.className='ac-hint';
+    hint.textContent=item.detail||'';
+    div.appendChild(kind);
+    div.appendChild(lbl);
+    div.appendChild(hint);
+    div.addEventListener('mousedown',e=>{e.preventDefault();applyCompletion(i);});
+    acBox.appendChild(div);
+  });
+  acBox.style.display='block';
+}
+
+function positionAC(){
+  const pos=textarea.selectionStart;
+  const text=textarea.value.substring(0,pos);
+  const lines=text.split('\n');
+  const lineNum=lines.length-1;
+  const col=lines[lineNum].length;
+  const lineH=13*1.6;
+  const top=10+lineH*(lineNum+1);
+  const left=40+8+col*7.8;
+  const editorBody=document.querySelector('.editor-body');
+  const maxLeft=editorBody.offsetWidth-acBox.offsetWidth-8;
+  acBox.style.top=Math.max(0,top-textarea.scrollTop)+'px';
+  acBox.style.left=Math.min(left,maxLeft)+'px';
+}
+
+function hideAutocomplete(){
+  acBox.style.display='none';
+  acVisible=false;
+  acItems=[];
+  acSelected=0;
+}
+
+function applyCompletion(idx){
+  const item=acItems[idx];
+  const pos=textarea.selectionStart;
+  const {word}=getCurrentWord();
+  const insert=item.insert||item.label;
+  const before=textarea.value.substring(0,acWordStart);
+  const after=textarea.value.substring(pos);
+  textarea.value=before+insert+after;
+  const newPos=acWordStart+insert.length;
+  textarea.selectionStart=textarea.selectionEnd=newPos;
+  hideAutocomplete();
+  updateLines();
+  updateCursor();
+  textarea.focus();
+}
+
+function setMode(mode){
+  currentMode=mode;
+  document.getElementById('btn-js').classList.toggle('active',mode==='js');
+  document.getElementById('btn-html').classList.toggle('active',mode==='html');
+  document.getElementById('tab-label').innerHTML=mode==='js'
+    ?'<i class="ti ti-brand-javascript"></i> script.js'
+    :'<i class="ti ti-brand-html5" style="color:#e8834d"></i> index.html';
+  document.getElementById('status-lang').textContent=mode==='js'?'JavaScript':'HTML';
+  textarea.value=mode==='js'?jsDefault:htmlDefault;
+  updateLines();
+  clearOutput();
+  hideAutocomplete();
+  if(mode==='html'){
+    consoleArea.style.display='none';
+    outputFrame.style.display='block';
+  }else{
+    consoleArea.style.display='block';
+    outputFrame.style.display='none';
+  }
+}
+
+function updateLines(){
+  const lines=textarea.value.split('\n');
+  lineNumbers.innerHTML=lines.map((_,i)=>`<span>${i+1}</span>`).join('');
+}
+
+function clearOutput(){
+  consoleArea.innerHTML='';
+  outputFrame.srcdoc='';
+}
+
+function appendLine(text,type='log'){
+  const line=document.createElement('div');
+  line.className=`console-line ${type}`;
+  const prefix=document.createElement('span');
+  prefix.className='console-prefix';
+  prefix.textContent=type==='error'?'✖':type==='warn'?'⚠':type==='info'?'ℹ':'›';
+  const content=document.createElement('span');
+  content.textContent=text;
+  line.appendChild(prefix);
+  line.appendChild(content);
+  consoleArea.appendChild(line);
+  consoleArea.scrollTop=consoleArea.scrollHeight;
+}
+
+function formatValue(v){
+  if(v===null) return 'null';
+  if(v===undefined) return 'undefined';
+  if(typeof v==='object'){try{return JSON.stringify(v,null,2);}catch{return String(v);}}
+  return String(v);
+}
+
+function runCode(){
+  clearOutput();
+  const code=textarea.value;
+  if(currentMode==='html'){outputFrame.srcdoc=code;return;}
+  const fakeConsole={
+    log:(...a)=>appendLine(a.map(formatValue).join(' '),'log'),
+    error:(...a)=>appendLine(a.map(formatValue).join(' '),'error'),
+    warn:(...a)=>appendLine(a.map(formatValue).join(' '),'warn'),
+    info:(...a)=>appendLine(a.map(formatValue).join(' '),'info'),
+  };
+  try{const fn=new Function('console',code);fn(fakeConsole);}
+  catch(e){appendLine(e.message,'error');}
+}
+
+textarea.addEventListener('input',()=>{updateLines();showAutocomplete();});
+
+textarea.addEventListener('keydown',e=>{
+  if(acVisible){
+    if(e.key==='ArrowDown'){e.preventDefault();acSelected=Math.min(acSelected+1,acItems.length-1);renderAC(getCurrentWord().word);return;}
+    if(e.key==='ArrowUp'){e.preventDefault();acSelected=Math.max(acSelected-1,0);renderAC(getCurrentWord().word);return;}
+    if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();applyCompletion(acSelected);return;}
+    if(e.key==='Escape'){hideAutocomplete();return;}
+  }
+  if(e.key==='Tab'&&!acVisible){
+    e.preventDefault();
+    const s=textarea.selectionStart,end=textarea.selectionEnd;
+    textarea.value=textarea.value.substring(0,s)+'  '+textarea.value.substring(end);
+    textarea.selectionStart=textarea.selectionEnd=s+2;
+    updateLines();
+  }
+});
+
+textarea.addEventListener('keyup',e=>{
+  updateCursor();
+  if(!['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','Escape','Enter'].includes(e.key)){showAutocomplete();}
+});
+
+textarea.addEventListener('click',()=>{updateCursor();hideAutocomplete();});
+textarea.addEventListener('scroll',()=>{lineNumbers.scrollTop=textarea.scrollTop;if(acVisible)positionAC();});
+document.addEventListener('click',e=>{if(!acBox.contains(e.target)&&e.target!==textarea)hideAutocomplete();});
+
+function updateCursor(){
+  const text=textarea.value.substring(0,textarea.selectionStart);
+  const lines=text.split('\n');
+  const ln=lines.length,col=lines[lines.length-1].length+1;
+  document.getElementById('cursor-pos').textContent=`Ln ${ln}, Col ${col}`;
+}
+
+setMode('js');
+</script>
+</body>
+</html>
