@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Urbanist:wght@400;600;700;800&display=swap');
+
+* { box-sizing: border-box; }
+
+.font-pixelify { font-family: 'Pixelify Sans', monospace; }
+.font-urbanist { font-family: 'Urbanist', sans-serif; }
+
+body {
+  background: linear-gradient(180deg, #4d8ea2 0%, #094174 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ===== GLASS CARD ===== */
+.card-glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%);
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.2), inset 0px 1px 0px rgba(255,255,255,0.1);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR BUTTON ===== */
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 42px;
+  border-radius: 32px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0px 4px 4px rgba(0,0,0,0.12);
+  transition: background 0.18s ease;
+  text-decoration: none;
+  overflow: hidden;
+}
+.sidebar-btn:hover,
+.sidebar-btn.active { background: rgba(255,255,255,0.22); }
+
+.sidebar-btn img  { width: 22px; height: 22px; flex-shrink: 0; }
+.sidebar-btn span {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 4px 4px rgba(0,0,0,0.25);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== NAV BUTTON ===== */
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 20px;
+  padding: 10px 16px;
+  background: transparent;
+  text-decoration: none;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 4px 4px rgba(0,0,0,0.25);
+  transition: background 0.18s ease;
+  white-space: nowrap;
+}
+.nav-btn:hover  { background: rgba(8,65,118,0.5); }
+.nav-btn.active { background: rgba(8,65,118,0.6); }
+
+/* ===== PRIMARY BUTTON ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8,65,118,0.7);
+  border: 1px solid rgba(255,255,255,0.25);
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.1s ease;
+  text-decoration: none;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.btn-primary:hover  { background: rgba(8,65,118,0.9); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+/* ===== INPUTS ===== */
+input[type="text"],
+input[type="password"] {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  font-family: 'Urbanist', sans-serif;
+  border-radius: 16px;
+  padding: 12px 16px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+input::placeholder { color: rgba(255,255,255,0.45); }
+input:focus        { border-color: rgba(255,255,255,0.5); }
+
+/* ================================================================
+   ANIMATIONS
+   ================================================================ */
+
+/* --- Fade down (header + sidebar card) --- */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Slide in from left (sidebar items) --- */
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* --- Scale + fade up (title) --- */
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* --- Pop in (floating icons) --- */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 0.35; transform: scale(1); }
+}
+
+/* --- Slide up (footer) --- */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Apply animations */
+.anim-header  { animation: fadeDown  0.5s ease-out both; }
+.anim-sidebar { animation: fadeDown  0.5s ease-out both; }
+
+.anim-nav-item-1 { animation: slideLeft 0.4s ease-out 0.15s both; }
+.anim-nav-item-2 { animation: slideLeft 0.4s ease-out 0.23s both; }
+.anim-nav-item-3 { animation: slideLeft 0.4s ease-out 0.31s both; }
+.anim-nav-item-4 { animation: slideLeft 0.4s ease-out 0.39s both; }
+.anim-nav-item-5 { animation: slideLeft 0.4s ease-out 0.47s both; }
+
+.anim-title   { animation: scaleUp  0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both; }
+.anim-footer  { animation: slideUp  0.55s ease-out 0.5s both; }
+
+.anim-float-1 { animation: popIn 0.6s ease-out 0.6s both; }
+.anim-float-2 { animation: popIn 0.6s ease-out 0.8s both; }
+.anim-float-3 { animation: popIn 0.6s ease-out 1.0s both; }
+.anim-float-4 { animation: popIn 0.6s ease-out 0.7s both; }
+.anim-float-5 { animation: popIn 0.6s ease-out 0.9s both; }

@@ -1,90 +1,59 @@
 <?php
-/**
- * AuthController - Controla operações de autenticação
- */
+require_once ROOT . '/core/Controller.php';
+require_once ROOT . '/app/models/User.php';
 
-require_once MODELS_DIR . '/User.php';
-
-class AuthController {
-    private $userModel;
-
-    public function __construct($pdo) {
-        $this->userModel = new User($pdo);
-        // Criar tabela se não existir
-        $this->userModel->createTable();
+class AuthController extends Controller {
+    public function login(): void {
+        $error = null;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $username = trim($_POST['username'] ?? '');
+            $password = $_POST['password'] ?? '';
+            if ($username && $password) {
+                $model = new User();
+                $user  = $model->findByUsername($username);
+                if ($user && $model->verifyPassword($user, $password)) {
+                    $_SESSION['user_id']  = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $this->redirect('');
+                } else {
+                    $error = 'Usuário ou senha inválidos.';
+                }
+            } else {
+                $error = 'Preencha todos os campos.';
+            }
+        }
+        $this->render('auth/login', ['error' => $error, 'activePage' => 'login']);
     }
 
-    /**
-     * Exibir página de login
-     */
-    public function loginPage() {
-        include VIEWS_DIR . '/auth/login.php';
+    public function cadastro(): void {
+        $error   = null;
+        $success = null;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $username = trim($_POST['username'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $confirm  = $_POST['confirm']  ?? '';
+            if (!$username || !$password || !$confirm) {
+                $error = 'Preencha todos os campos.';
+            } elseif ($password !== $confirm) {
+                $error = 'As senhas não coincidem.';
+            } elseif (strlen($password) < 6) {
+                $error = 'A senha deve ter ao menos 6 caracteres.';
+            } else {
+                $model = new User();
+                if ($model->findByUsername($username)) {
+                    $error = 'Nome de usuário já em uso.';
+                } elseif ($model->create($username, $password)) {
+                    $success = 'Conta criada! Faça o login.';
+                } else {
+                    $error = 'Erro ao criar conta. Banco de dados não configurado.';
+                }
+            }
+        }
+        $this->render('auth/cadastro', ['error' => $error, 'success' => $success, 'activePage' => 'cadastro']);
     }
 
-    /**
-     * Exibir página de cadastro
-     */
-    public function registerPage() {
-        include VIEWS_DIR . '/auth/register.php';
-    }
-
-    /**
-     * Processar login
-     */
-    public function login() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return ['success' => false, 'message' => 'Método não permitido'];
-        }
-
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-
-        $result = $this->userModel->login($email, $password);
-
-        if ($result['success']) {
-            redirect(APP_URL . '/');
-        } else {
-            $_SESSION['error'] = $result['message'];
-            redirect(APP_URL . '/login');
-        }
-    }
-
-    /**
-     * Processar cadastro
-     */
-    public function register() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return ['success' => false, 'message' => 'Método não permitido'];
-        }
-
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-
-        // Validar senhas
-        if ($password !== $confirmPassword) {
-            $_SESSION['error'] = 'As senhas não conferem';
-            redirect(APP_URL . '/register');
-        }
-
-        $result = $this->userModel->register($name, $email, $password);
-
-        if ($result['success']) {
-            $_SESSION['success'] = 'Cadastro realizado com sucesso! Faça login para continuar.';
-            redirect(APP_URL . '/login');
-        } else {
-            $_SESSION['error'] = $result['message'];
-            redirect(APP_URL . '/register');
-        }
-    }
-
-    /**
-     * Fazer logout
-     */
-    public function logout() {
-        $this->userModel->logout();
-        redirect(APP_URL . '/');
+    public function logout(): void {
+        session_destroy();
+        $this->redirect('');
     }
 }
-?>
