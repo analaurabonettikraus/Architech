@@ -1,71 +1,21 @@
 <?php
-/**
- * HomeController - Controla a página inicial (landing page)
- */
+require_once ROOT . '/core/Controller.php';
 
-class HomeController {
-    /**
-     * Exibir página inicial
-     */
-    public function index() {
-        $isLoggedIn = isLoggedIn();
-        $user = getLoggedInUser();
-        include VIEWS_DIR . '/home/index.php';
+class HomeController extends Controller {
+    public function index(): void {
+        $this->render('home/index', ['activePage' => 'home']);
     }
 
-    /**
-     * Exibir dashboard do usuário
-     */
-    public function dashboard() {
-        if (!isLoggedIn()) {
-            redirect(APP_URL . '/login');
-        }
-
-        $user = getLoggedInUser();
-        include VIEWS_DIR . '/dashboard/index.php';
+    public function sobre(): void {
+        $this->render('home/sobre', ['activePage' => 'sobre']);
     }
 
-    /**
-     * Exibir página de perfil
-     */
-    public function profile() {
-        if (!isLoggedIn()) {
-            redirect(APP_URL . '/login');
-        }
-
-        $user = getLoggedInUser();
-        include VIEWS_DIR . '/profile/index.php';
+    public function exercicios(): void {
+        $this->render('home/exercicios', ['activePage' => 'exercicios']);
     }
 
-    /**
-     * Exibir página de exercícios
-     */
-    public function exercises() {
-        $isLoggedIn = isLoggedIn();
-        include VIEWS_DIR . '/exercises/index.php';
-    }
-
-    /**
-     * Exibir página sobre
-     */
-    public function about() {
-        include VIEWS_DIR . '/about/index.php';
-    }
-
-    /**
-     * Exibir página de fórum
-     */
-    public function forum() {
-        $isLoggedIn = isLoggedIn();
-        include VIEWS_DIR . '/forum/index.php';
-    }
-
-    /**
-     * Exibir página de IA
-     */
-    public function ai() {
-        $isLoggedIn = isLoggedIn();
-        include VIEWS_DIR . '/ai/index.php';
+    public function notFound(): void {
+        http_response_code(404);
+        $this->render('errors/404', []);
     }
 }
-?>

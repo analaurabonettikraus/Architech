@@ -55,32 +55,42 @@
     <section class="flex flex-1 items-center justify-center py-16">
       <div class="card-glass w-full max-w-md rounded-[38px] p-8">
         <h2 class="font-pixelify text-3xl font-semibold text-white text-center mb-6"
-          style="text-shadow:-4px 4px 0 #00000040;">LOGIN</h2>
+          style="text-shadow:-4px 4px 0 #00000040;">CADASTRO</h2>
         <?php if (!empty($error)): ?>
           <div class="mb-4 rounded-xl bg-red-500/30 border border-red-400/40 px-4 py-3 text-white font-urbanist text-sm">
             <?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
-        <form method="POST" action="<?= BASE_URL ?>/login" class="flex flex-col gap-4">
+        <?php if (!empty($success)): ?>
+          <div
+            class="mb-4 rounded-xl bg-green-500/30 border border-green-400/40 px-4 py-3 text-white font-urbanist text-sm">
+            <?= htmlspecialchars($success) ?></div>
+        <?php endif; ?>
+        <form method="POST" action="<?= BASE_URL ?>/cadastro" class="flex flex-col gap-4">
           <div>
-            <label class="font-urbanist text-sm font-bold text-white mb-1 block"
-              style="text-shadow:0 2px 4px #00000040;">Usuário</label>
-            <input type="text" name="username" required placeholder="Seu nome de usuário"
+            <label class="font-urbanist text-sm font-bold text-white mb-1 block">Usuário</label>
+            <input type="text" name="username" required placeholder="Escolha um nome de usuário"
               class="w-full rounded-[16px] px-4 py-3 font-urbanist text-white placeholder-white/50 outline-none border border-white/20 focus:border-white/50 transition-colors"
               style="background:rgba(255,255,255,.12);" />
           </div>
           <div>
-            <label class="font-urbanist text-sm font-bold text-white mb-1 block"
-              style="text-shadow:0 2px 4px #00000040;">Senha</label>
-            <input type="password" name="password" required placeholder="Sua senha"
+            <label class="font-urbanist text-sm font-bold text-white mb-1 block">Senha</label>
+            <input type="password" name="password" required placeholder="Mínimo 6 caracteres"
+              class="w-full rounded-[16px] px-4 py-3 font-urbanist text-white placeholder-white/50 outline-none border border-white/20 focus:border-white/50 transition-colors"
+              style="background:rgba(255,255,255,.12);" />
+          </div>
+          <div>
+            <label class="font-urbanist text-sm font-bold text-white mb-1 block">Confirmar Senha</label>
+            <input type="password" name="confirm" required placeholder="Repita a senha"
               class="w-full rounded-[16px] px-4 py-3 font-urbanist text-white placeholder-white/50 outline-none border border-white/20 focus:border-white/50 transition-colors"
               style="background:rgba(255,255,255,.12);" />
           </div>
           <button type="submit"
-            class="btn-primary mt-2 w-full rounded-[20px] py-3 font-urbanist text-base font-bold text-white">Entrar</button>
+            class="btn-primary mt-2 w-full rounded-[20px] py-3 font-urbanist text-base font-bold text-white">Criar
+            conta</button>
         </form>
         <p class="mt-4 text-center font-urbanist text-sm text-white/80">
-          Não tem conta? <a href="<?= BASE_URL ?>/cadastro"
-            class="underline hover:text-white transition-colors">Cadastre-se</a>
+          Já tem conta? <a href="<?= BASE_URL ?>/login" class="underline hover:text-white transition-colors">Faça
+            login</a>
         </p>
       </div>
     </section>

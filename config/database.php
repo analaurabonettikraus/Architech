@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 /**
  * Configuração do Banco de Dados MySQL
  * Arquivo de configuração centralizado para conexão com o banco
@@ -26,3 +27,13 @@ try {
     die('Erro na conexão com o banco de dados: ' . $e->getMessage());
 }
 ?>
+=======
+return [
+    'enabled'  => false,
+    'host'     => 'localhost',
+    'port'     => 5432,
+    'dbname'   => 'architech',
+    'user'     => 'root',
+    'password' => 'aninha10',
+];
+>>>>>>> ana
