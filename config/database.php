@@ -29,11 +29,11 @@ try {
 ?>
 =======
 return [
-    'enabled'  => false,
+    'enabled'  => true,
     'host'     => 'localhost',
-    'port'     => 5432,
+    'port'     => 3306,
     'dbname'   => 'architech',
     'user'     => 'root',
-    'password' => 'aninha10',
+    'password' => 'aninha10',      
 ];
 >>>>>>> ana
