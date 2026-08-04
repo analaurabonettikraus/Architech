@@ -3,56 +3,78 @@ require_once ROOT . '/core/Controller.php';
 require_once ROOT . '/app/models/User.php';
 
 class AuthController extends Controller {
+
     public function login(): void {
+        // Se já está logado, redireciona
+        if ($this->isLoggedIn()) { $this->redirect(''); return; }
+
         $error = null;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = trim($_POST['username'] ?? '');
-            $password = $_POST['password'] ?? '';
-            if ($username && $password) {
-                $model = new User();
-                $user  = $model->findByUsername($username);
-                if ($user && $model->verifyPassword($user, $password)) {
-                    $_SESSION['user_id']  = $user['id'];
-                    $_SESSION['username'] = $user['username'];
+            $email = trim($_POST['email'] ?? '');
+            $senha = $_POST['senha'] ?? '';
+
+            if (!$email || !$senha) {
+                $error = 'Preencha todos os campos.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'E-mail inválido.';
+            } else {
+                $m    = new User();
+                $user = $m->findByEmail($email);
+                if ($user && $m->verifyPassword($user, $senha)) {
+                    $_SESSION['usuario_id']   = $user['id'];
+                    $_SESSION['usuario_nome'] = $user['nome'];
+                    $_SESSION['usuario_email']= $user['email'];
                     $this->redirect('');
                 } else {
-                    $error = 'Usuário ou senha inválidos.';
+                    $error = 'E-mail ou senha inválidos.';
                 }
-            } else {
-                $error = 'Preencha todos os campos.';
             }
         }
         $this->render('auth/login', ['error' => $error, 'activePage' => 'login']);
     }
 
     public function cadastro(): void {
-        $error   = null;
-        $success = null;
+        if ($this->isLoggedIn()) { $this->redirect(''); return; }
+
+        $error = $success = null;
+        $niveis = ['Iniciante', 'Intermediário', 'Avançado'];
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = trim($_POST['username'] ?? '');
-            $password = $_POST['password'] ?? '';
-            $confirm  = $_POST['confirm']  ?? '';
-            if (!$username || !$password || !$confirm) {
-                $error = 'Preencha todos os campos.';
-            } elseif ($password !== $confirm) {
+            $nome   = trim($_POST['nome']   ?? '');
+            $email  = trim($_POST['email']  ?? '');
+            $senha  = $_POST['senha']   ?? '';
+            $confirma = $_POST['confirma'] ?? '';
+            $nivel  = $_POST['nivel_conhecimento'] ?? '';
+
+            if (!$nome || !$email || !$senha || !$confirma) {
+                $error = 'Preencha todos os campos obrigatórios.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'E-mail inválido.';
+            } elseif ($senha !== $confirma) {
                 $error = 'As senhas não coincidem.';
-            } elseif (strlen($password) < 6) {
-                $error = 'A senha deve ter ao menos 6 caracteres.';
+            } elseif (strlen($senha) < 6) {
+                $error = 'A senha deve ter pelo menos 6 caracteres.';
             } else {
-                $model = new User();
-                if ($model->findByUsername($username)) {
-                    $error = 'Nome de usuário já em uso.';
-                } elseif ($model->create($username, $password)) {
-                    $success = 'Conta criada! Faça o login.';
+                $m = new User();
+                if ($m->emailExists($email)) {
+                    $error = 'Este e-mail já está cadastrado.';
+                } elseif ($m->create($nome, $email, $senha, $nivel)) {
+                    $success = 'Conta criada com sucesso! Faça login.';
                 } else {
-                    $error = 'Erro ao criar conta. Banco de dados não configurado.';
+                    $error = 'Erro ao criar conta. Verifique as configurações do banco.';
                 }
             }
         }
-        $this->render('auth/cadastro', ['error' => $error, 'success' => $success, 'activePage' => 'cadastro']);
+        $this->render('auth/cadastro', [
+            'error'   => $error,
+            'success' => $success,
+            'niveis'  => $niveis,
+            'activePage' => 'cadastro',
+        ]);
     }
 
     public function logout(): void {
+        $_SESSION = [];
         session_destroy();
         $this->redirect('');
     }

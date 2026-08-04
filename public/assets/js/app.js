@@ -1,16 +1,10 @@
-(function () {
+(function(){
   'use strict';
-
-  // Highlight active sidebar link based on current path
-  document.addEventListener('DOMContentLoaded', function () {
-    var path = window.location.pathname.replace(/\/$/, '');
-    var links = document.querySelectorAll('.sidebar-btn, .nav-btn');
-    links.forEach(function (link) {
-      var href = link.getAttribute('href') || '';
-      var hrefPath = href.replace(/\/$/, '');
-      if (hrefPath === path) {
-        link.classList.add('active');
-      }
+  document.addEventListener('DOMContentLoaded',function(){
+    var path = window.location.pathname.replace(/\/$/,'');
+    document.querySelectorAll('.sidebar-btn,.nav-btn').forEach(function(el){
+      var href = (el.getAttribute('href')||'').replace(/\/$/,'');
+      if (href === path) el.classList.add('active');
     });
   });
 })();
