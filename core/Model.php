@@ -1,19 +1,17 @@
 <?php
 class Model {
     protected ?PDO $db = null;
-
     public function __construct() {
-        $config = require ROOT . '/config/database.php';
-        if ($config['enabled']) {
+        $cfg = require ROOT . '/config/database.php';
+        if ($cfg['enabled']) {
             try {
-                $dsn = 'pgsql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';port=' . $config['port'];
-                $this->db = new PDO($dsn, $config['user'], $config['password'], [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                $dsn = "mysql:host={$cfg['host']};port={$cfg['port']};dbname={$cfg['dbname']};charset=utf8mb4";
+                $this->db = new PDO($dsn, $cfg['user'], $cfg['password'], [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
                 ]);
-            } catch (PDOException $e) {
-                $this->db = null;
-            }
+            } catch (PDOException $e) { $this->db = null; }
         }
     }
 }
