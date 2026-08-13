@@ -64,7 +64,7 @@
     }
 
     function iconPlus() {
-        return '<svg width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#063c70" stroke-width="3.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4.5" x2="12" y2="19.5"></line><line x1="4.5" y1="12" x2="19.5" y2="12"></line></svg>';
+        return '<span aria-hidden="true" style="display:block;color:#062f5f;font-family:Arial,sans-serif;font-size:118px;font-weight:300;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.13);">+</span>';
     }
 
     function deleteButton(type, id) {
@@ -91,7 +91,7 @@
         const label = insideFolder ? 'Criar novo projeto' : 'Criar novo projeto/pasta';
         const forced = insideFolder ? "'projeto'" : '';
         return `<article class="create-card" style="display:flex;flex-direction:column;align-items:center;gap:15px;${insideFolder ? 'margin-top:12px;' : ''}">
-            <button type="button" onclick="openCreateModal(${forced})" aria-label="${label}" title="${label}" style="width:100%;height:220px;border:2px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(31,103,151,.92),rgba(9,65,116,.82));border-radius:60px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 15px 30px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1);transition:background .25s,transform .25s;" onmouseenter="this.style.background='linear-gradient(145deg,rgba(39,119,172,.98),rgba(9,65,116,.95))';this.style.transform='translateY(-5px)'" onmouseleave="this.style.background='linear-gradient(145deg,rgba(31,103,151,.92),rgba(9,65,116,.82))';this.style.transform='translateY(0)'>${iconPlus()}</button>
+            <button type="button" onclick="openCreateModal(${forced})" aria-label="${label}" title="${label}" style="width:100%;height:220px;border:2px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(31,103,151,.92),rgba(9,65,116,.82));border-radius:60px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 15px 30px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1);transition:background .25s,transform .25s;" onmouseenter="this.style.background='linear-gradient(145deg,rgba(39,119,172,.98),rgba(9,65,116,.95))';this.style.transform='translateY(-5px)'" onmouseleave="this.style.background='linear-gradient(145deg,rgba(31,103,151,.92),rgba(9,65,116,.82))';this.style.transform='translateY(0)'">${iconPlus()}</button>
             <span style="font-family:'Urbanist',sans-serif;font-weight:700;font-size:22px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.25);">${label}</span>
         </article>`;
     }
@@ -256,10 +256,23 @@
         updateLineNumbers();
     };
 
+    function syncLineNumbers() {
+        const content = document.querySelector('#line-numbers .line-numbers-content');
+        if (content) content.style.transform = `translateY(-${editor().scrollTop}px)`;
+    }
+
     function updateLineNumbers() {
         const numberColumn = document.getElementById('line-numbers');
-        const numberOfLines = editor().value.split('\n').length;
-        numberColumn.textContent = Array.from({ length: numberOfLines }, (_, index) => index + 1).join('\n');
+        const numberOfLines = Math.max(1, editor().value.split('\n').length);
+        let content = numberColumn.querySelector('.line-numbers-content');
+        if (!content) {
+            content = document.createElement('span');
+            content.className = 'line-numbers-content';
+            content.style.cssText = 'display:block;white-space:pre;will-change:transform;';
+            numberColumn.replaceChildren(content);
+        }
+        content.textContent = Array.from({ length: numberOfLines }, (_, index) => index + 1).join('\n');
+        syncLineNumbers();
     }
 
     window.runCode = function runCode() {
@@ -367,9 +380,7 @@
             project.code[currentLang] = editor().value;
             updateLineNumbers();
         });
-        editor().addEventListener('scroll', () => {
-            document.getElementById('line-numbers').scrollTop = editor().scrollTop;
-        });
+        editor().addEventListener('scroll', syncLineNumbers);
         window.addEventListener('message', (event) => {
             if (event.data?.type !== 'architech-project-error') return;
             document.getElementById('error-panel').style.display = 'block';
