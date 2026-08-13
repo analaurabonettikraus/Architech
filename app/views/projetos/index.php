@@ -78,8 +78,8 @@
             <!-- Lado do Código -->
             <div style="flex: 1.2; display: flex; flex-direction: column; background: #1e1e1e; position: relative;">
                 <div style="display: flex; flex: 1; overflow: hidden;">
-                    <div id="line-numbers" style="background: #1e1e1e; color: #555; padding: 25px 15px; text-align: right; font-family: 'Courier New', monospace; font-size: 16px; line-height: 1.6; border-right: 1px solid #333; user-select: none;"></div>
-                    <textarea id="code-editor" spellcheck="false" style="flex: 1; min-height: 430px; background: #1e1e1e; color: #d4d4d4; border: none; padding: 25px 20px; font-family: 'Courier New', monospace; font-size: 16px; outline: none; resize: none; line-height: 1.6; tab-size: 4;"></textarea>
+                    <div id="line-numbers" aria-hidden="true" style="flex: 0 0 54px; align-self: stretch; overflow: hidden; white-space: pre; background: #1e1e1e; color: #6e6e6e; padding: 25px 12px; text-align: right; font-family: 'Courier New', monospace; font-size: 16px; line-height: 1.6; border-right: 1px solid #333; user-select: none; box-sizing: border-box;"><span class="line-numbers-content" style="display:block; will-change:transform;">1</span></div>
+                    <textarea id="code-editor" spellcheck="false" wrap="off" style="flex: 1; min-height: 430px; background: #1e1e1e; color: #d4d4d4; border: none; padding: 25px 20px; font-family: 'Courier New', monospace; font-size: 16px; outline: none; resize: none; line-height: 1.6; tab-size: 4; white-space: pre; overflow: auto;"></textarea>
                 </div>
                 
                 <div style="display: flex; justify-content: center; gap: 20px; padding: 20px; background: #1e1e1e;">
@@ -252,7 +252,7 @@
         grid.innerHTML += `
             <div onclick="openCreateModal()" style="display: flex; flex-direction: column; align-items: center; gap: 15px; cursor: pointer;">
                 <div style="width: 100%; height: 200px; background: rgba(9, 65, 116, 0.5); border: 2px solid rgba(255,255,255,0.05); border-radius: 60px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 15px 30px rgba(0,0,0,0.25);" onmouseover="this.style.background='rgba(9, 65, 116, 0.7)'; this.style.transform='translateY(-5px)'" onmouseout="this.style.background='rgba(9, 65, 116, 0.5)'; this.style.transform='translateY(0)'">
-                    <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#094174" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span aria-hidden="true" style="display:block;color:#062f5f;font-family:Arial,sans-serif;font-size:118px;font-weight:300;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.13);">+</span>
                 </div>
                 <span style="font-family: 'Urbanist', sans-serif; font-weight: 700; font-size: 22px; color: #fff;">Criar novo projeto/pasta</span>
             </div>
@@ -285,7 +285,7 @@
         grid.innerHTML += `
             <div onclick="openCreateModal('projeto')" style="display: flex; flex-direction: column; align-items: center; gap: 15px; cursor: pointer;">
                 <div style="width: 100%; height: 200px; background: rgba(9, 65, 116, 0.5); border: 2px solid rgba(255,255,255,0.05); border-radius: 60px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 15px 30px rgba(0,0,0,0.25);" onmouseover="this.style.background='rgba(9, 65, 116, 0.7)'; this.style.transform='translateY(-5px)'" onmouseout="this.style.background='rgba(9, 65, 116, 0.5)'; this.style.transform='translateY(0)'">
-                    <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#094174" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span aria-hidden="true" style="display:block;color:#062f5f;font-family:Arial,sans-serif;font-size:118px;font-weight:300;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.13);">+</span>
                 </div>
                 <span style="font-family: 'Urbanist', sans-serif; font-weight: 700; font-size: 22px; color: #fff;">Criar novo projeto</span>
             </div>
@@ -408,10 +408,18 @@
         runCode();
     });
 
-    function updateLineNumbers() {
-        const lines = editor.value.split('\n').length;
-        lineNumbers.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('\n');
+    function syncInlineLineNumbers() {
+        const content = lineNumbers.querySelector('.line-numbers-content');
+        if (content) content.style.transform = `translateY(-${editor.scrollTop}px)`;
     }
+
+    function updateLineNumbers() {
+        const lines = Math.max(1, editor.value.split('\n').length);
+        lineNumbers.innerHTML = `<span class="line-numbers-content" style="display:block;white-space:pre;will-change:transform;">${Array.from({ length: lines }, (_, i) => i + 1).join('\n')}</span>`;
+        syncInlineLineNumbers();
+    }
+
+    editor.addEventListener('scroll', syncInlineLineNumbers);
 
     function switchLang(lang) {
         currentLang = lang;

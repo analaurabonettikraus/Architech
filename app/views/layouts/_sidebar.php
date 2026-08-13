@@ -1,6 +1,6 @@
 <?php
 $sidebarItems = [
-  ['label'=>'Perfil',        'icon'=>'ix-user-profile-filled.svg',                        'link'=>'login'],
+  ['label'=>'Perfil',        'icon'=>'ix-user-profile-filled.svg',                        'link'=>'perfil'],
   ['label'=>'Meus projetos', 'icon'=>'solar-folder-with-files-bold.svg',                  'link'=>'projetos'],
   ['label'=>'Vídeoaulas',    'icon'=>'tabler-book-filled.svg',                             'link'=>'videoaulas'],
   ['label'=>'Nossa IA',      'icon'=>'streamline-artificial-intelligence-spark-solid.svg', 'link'=>'ia'],

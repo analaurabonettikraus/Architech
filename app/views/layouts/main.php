@@ -12,6 +12,7 @@
   <?php include ROOT . '/app/views/layouts/_sidebar.php'; ?>
   <div class="main-wrap">
     <?php include ROOT . '/app/views/layouts/_topnav.php'; ?>
+    <script src="<?= ASSETS ?>/js/learning-progress.js"></script>
     <?= $content ?>
   </div>
   <script src="<?= ASSETS ?>/js/app.js"></script>
